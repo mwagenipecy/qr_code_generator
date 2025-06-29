@@ -181,15 +181,21 @@ class QrCodeGenerator extends Component
             // Fallback to SVG if Imagick is not available
             $renderer = new ImageRenderer($rendererStyle, new SvgImageBackEnd());
             $writer = new Writer($renderer);
-            $qrCode = $writer->writeString($content);
+
+            if($content){
+                $qrCode = $writer->writeString($content);
             
-            // For SVG we can modify it directly to add styling
-            $svgQrCode = $this->styleSvgQrCode($qrCode);
+                // For SVG we can modify it directly to add styling
+                $svgQrCode = $this->styleSvgQrCode($qrCode);
+                
+                // Apply branding to SVG
+                $svgQrCode = $this->applyBrandingToSvg($svgQrCode);
+                
+                $this->generatedQrCode = base64_encode($svgQrCode);
+    
+            }
+          
             
-            // Apply branding to SVG
-            $svgQrCode = $this->applyBrandingToSvg($svgQrCode);
-            
-            $this->generatedQrCode = base64_encode($svgQrCode);
         }
     }
     

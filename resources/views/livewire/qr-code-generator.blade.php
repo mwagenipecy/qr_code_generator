@@ -24,8 +24,17 @@
                 <h2 class="text-lg font-semibold text-emerald-700 mb-4">QR Code Preview</h2>
                 <div class="p-4 bg-white rounded-lg border-4" style="border-color: {{ $borderColor }}">
                     @if($generatedQrCode)
-                        <img src="data:image/png;base64,{{ $generatedQrCode }}" alt="QR Code" class="w-48 h-48">
-                    @else
+                    <img 
+                    src="{{ !empty($generatedQrCode) 
+                        ? 'data:image/png;base64,' . $generatedQrCode 
+                        : asset('images/qr-placeholder.png') 
+                    }}" 
+                    alt="QR Code" 
+                    class="w-48 h-48"
+                />
+
+
+@else
                         <div class="w-48 h-48 bg-gray-200 flex items-center justify-center">
                             <p class="text-gray-500">Loading QR Code...</p>
                         </div>
