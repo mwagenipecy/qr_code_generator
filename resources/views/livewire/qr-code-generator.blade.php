@@ -8,18 +8,49 @@
         </div>
     </div>
 
-    <!-- Header -->
-    <header class="bg-emerald-500 text-white p-4 shadow-md">
-        <div class="container mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <rect x="7" y="7" width="3" height="3"></rect>
-                    <rect x="14" y="7" width="3" height="3"></rect>
-                    <rect x="7" y="14" width="3" height="3"></rect>
-                    <rect x="14" y="14" width="3" height="3"></rect>
-                </svg>
-                <h1 class="text-xl font-bold">Cool QR Generator</h1>
+    <!-- Enhanced Header -->
+    <header class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-6 shadow-xl relative overflow-hidden">
+        <!-- Background Pattern -->
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><defs><pattern id=\"grid\" width=\"10\" height=\"10\" patternUnits=\"userSpaceOnUse\"><path d=\"M 10 0 L 0 0 0 10\" fill=\"none\" stroke=\"white\" stroke-width=\"0.5\"/></pattern></defs><rect width=\"100\" height=\"100\" fill=\"url(%23grid)\"/></svg>');"></div>
+        </div>
+        
+        <div class="container mx-auto relative z-10">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-white opacity-20 rounded-lg blur-lg"></div>
+                        <div class="relative bg-white bg-opacity-10 p-3 rounded-xl backdrop-blur-sm border border-white border-opacity-20">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <rect x="7" y="7" width="3" height="3"></rect>
+                                <rect x="14" y="7" width="3" height="3"></rect>
+                                <rect x="7" y="14" width="3" height="3"></rect>
+                                <rect x="14" y="14" width="3" height="3"></rect>
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold mb-1">Cool QR Generator</h1>
+                        <p class="text-emerald-100 text-sm">Create professional QR codes with custom branding</p>
+                    </div>
+                </div>
+                
+                <!-- Stats or Features -->
+                <div class="hidden md:flex items-center space-x-6 text-emerald-100">
+                    <div class="text-center">
+                        <div class="text-lg font-semibold">4 Formats</div>
+                        <div class="text-xs">PNG, SVG, PDF, EPS</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-lg font-semibold">7 Types</div>
+                        <div class="text-xs">URL, Text, Email, etc.</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-lg font-semibold">∞ Styles</div>
+                        <div class="text-xs">Custom designs</div>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -28,11 +59,14 @@
     <main class="container mx-auto p-4 mt-8">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- QR Code Preview -->
-            <div class="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-lg shadow-sm">
-                <h2 class="text-lg font-semibold text-emerald-700 mb-4">QR Code Preview</h2>
+            <div class="flex flex-col items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-lg border border-gray-200 relative overflow-hidden">
+                <!-- Background decoration -->
+                <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
+                <div class="absolute bottom-0 left-0 w-24 h-24 bg-teal-100 rounded-full -ml-12 -mb-12 opacity-50"></div>
+                <h2 class="text-xl font-bold text-gray-800 mb-6 relative z-10">QR Code Preview</h2>
                 
                 <!-- QR Code Display with Loading State -->
-                <div class="relative p-4 bg-white rounded-lg border-4 transition-all duration-300" style="border-color: {{ $borderColor }}">
+                <div class="relative p-6 bg-white rounded-2xl border-4 shadow-xl transition-all duration-300 hover:shadow-2xl" style="border-color: {{ $borderColor }}; min-height: {{ $size + 100 }}px; display: flex; align-items: center; justify-content: center;">
                     <!-- Loading State for QR Code -->
                     <div wire:loading.flex wire:target="qrValue,contentType,qrStyle,errorCorrection,size,borderColor,companyName,logoPosition,logoSize,logo" 
                          class="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center rounded-lg z-10">
@@ -49,7 +83,8 @@
                                 : asset('images/qr-placeholder.png') 
                             }}" 
                             alt="QR Code" 
-                            class="w-48 h-48 transition-opacity duration-300"
+                            class="max-w-full h-auto transition-opacity duration-300 qr-code-image"
+                            style="width: {{ $size }}px; height: {{ $size }}px; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;"
                             wire:loading.class="opacity-50"
                         />
                     @else
@@ -79,11 +114,11 @@
                 </div>
 
                 <!-- Download Buttons with Loading States -->
-                <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3 relative z-10">
                     <button wire:click="downloadQrCode('png')" 
                             wire:loading.attr="disabled"
                             wire:target="downloadQrCode('png')"
-                            class="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 px-3 rounded-md transition-colors relative">
+                            class="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 px-4 rounded-xl transition-all duration-200 relative shadow-md hover:shadow-lg hover:scale-105 transform">
                         <div wire:loading.remove wire:target="downloadQrCode('png')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -99,7 +134,7 @@
                     <button wire:click="downloadQrCode('svg')" 
                             wire:loading.attr="disabled"
                             wire:target="downloadQrCode('svg')"
-                            class="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 px-3 rounded-md transition-colors relative">
+                            class="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 px-4 rounded-xl transition-all duration-200 relative shadow-md hover:shadow-lg hover:scale-105 transform">
                         <div wire:loading.remove wire:target="downloadQrCode('svg')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -115,7 +150,7 @@
                     <button wire:click="downloadQrCode('pdf')" 
                             wire:loading.attr="disabled"
                             wire:target="downloadQrCode('pdf')"
-                            class="flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 px-3 rounded-md transition-colors relative">
+                            class="flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 px-4 rounded-xl transition-all duration-200 relative shadow-md hover:shadow-lg hover:scale-105 transform">
                         <div wire:loading.remove wire:target="downloadQrCode('pdf')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -132,7 +167,7 @@
                     <button wire:click="downloadQrCode('eps')" 
                             wire:loading.attr="disabled"
                             wire:target="downloadQrCode('eps')"
-                            class="flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 px-3 rounded-md transition-colors relative">
+                            class="flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 px-4 rounded-xl transition-all duration-200 relative shadow-md hover:shadow-lg hover:scale-105 transform">
                         <div wire:loading.remove wire:target="downloadQrCode('eps')">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -207,16 +242,20 @@
             </div>
             
             <!-- QR Settings -->
-            <div class="p-6 bg-gray-50 rounded-lg shadow-sm">
-                <h2 class="text-lg font-semibold text-emerald-700 mb-4">Customize Your QR Code</h2>
+            <div class="p-8 bg-white rounded-2xl shadow-xl border border-gray-200 relative overflow-hidden">
+                <!-- Background decoration -->
+                <div class="absolute top-0 right-0 w-40 h-40 bg-emerald-50 rounded-full -mr-20 -mt-20 opacity-60"></div>
+                <div class="absolute bottom-0 left-0 w-32 h-32 bg-teal-50 rounded-full -ml-16 -mb-16 opacity-60"></div>
+                
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 relative z-10">Customize Your QR Code</h2>
                 
                 <!-- Tabs with Loading States -->
-                <div class="flex border-b border-gray-200 mb-4">
+                <div class="flex border-b border-gray-200 mb-6 relative z-10">
                     <button 
                         wire:click="setActiveTab('content')" 
                         wire:loading.attr="disabled"
                         wire:target="setActiveTab"
-                        class="relative py-2 px-4 transition-all duration-200 {{ $activeTab === 'content' ? 'border-b-2 border-emerald-500 text-emerald-600 font-medium' : 'text-gray-600 hover:text-gray-800' }}"
+                        class="relative py-3 px-6 transition-all duration-200 rounded-t-lg {{ $activeTab === 'content' ? 'border-b-2 border-emerald-500 text-emerald-600 font-semibold bg-emerald-50' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50' }}"
                     >
                         <span wire:loading.remove wire:target="setActiveTab('content')">Content</span>
                         <span wire:loading wire:target="setActiveTab('content')" class="flex items-center space-x-2">
@@ -228,7 +267,7 @@
                         wire:click="setActiveTab('style')" 
                         wire:loading.attr="disabled"
                         wire:target="setActiveTab"
-                        class="relative py-2 px-4 transition-all duration-200 {{ $activeTab === 'style' ? 'border-b-2 border-emerald-500 text-emerald-600 font-medium' : 'text-gray-600 hover:text-gray-800' }}"
+                        class="relative py-3 px-6 transition-all duration-200 rounded-t-lg {{ $activeTab === 'style' ? 'border-b-2 border-emerald-500 text-emerald-600 font-semibold bg-emerald-50' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50' }}"
                     >
                         <span wire:loading.remove wire:target="setActiveTab('style')">Style</span>
                         <span wire:loading wire:target="setActiveTab('style')" class="flex items-center space-x-2">
@@ -240,7 +279,7 @@
                         wire:click="setActiveTab('branding')" 
                         wire:loading.attr="disabled"
                         wire:target="setActiveTab"
-                        class="relative py-2 px-4 transition-all duration-200 {{ $activeTab === 'branding' ? 'border-b-2 border-emerald-500 text-emerald-600 font-medium' : 'text-gray-600 hover:text-gray-800' }}"
+                        class="relative py-3 px-6 transition-all duration-200 rounded-t-lg {{ $activeTab === 'branding' ? 'border-b-2 border-emerald-500 text-emerald-600 font-semibold bg-emerald-50' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50' }}"
                     >
                         <span wire:loading.remove wire:target="setActiveTab('branding')">Branding</span>
                         <span wire:loading wire:target="setActiveTab('branding')" class="flex items-center space-x-2">
@@ -252,7 +291,7 @@
                         wire:click="setActiveTab('layout')" 
                         wire:loading.attr="disabled"
                         wire:target="setActiveTab"
-                        class="relative py-2 px-4 transition-all duration-200 {{ $activeTab === 'layout' ? 'border-b-2 border-emerald-500 text-emerald-600 font-medium' : 'text-gray-600 hover:text-gray-800' }}"
+                        class="relative py-3 px-6 transition-all duration-200 rounded-t-lg {{ $activeTab === 'layout' ? 'border-b-2 border-emerald-500 text-emerald-600 font-semibold bg-emerald-50' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50' }}"
                     >
                         <span wire:loading.remove wire:target="setActiveTab('layout')">Layout</span>
                         <span wire:loading wire:target="setActiveTab('layout')" class="flex items-center space-x-2">
@@ -302,7 +341,6 @@
                                 <option value="Text">Text</option>
                                 <option value="Email">Email</option>
                                 <option value="Phone">Phone</option>
-                                <option value="SMS">SMS</option>
                                 <option value="WiFi">WiFi</option>
                                 <option value="VCard">Contact Card</option>
                             </select>
@@ -318,9 +356,6 @@
                                 @elseif($contentType === 'Phone')
                                     <p class="text-sm text-blue-700">📞 Enter a phone number with country code (e.g., +1234567890)</p>
                                     <p class="text-xs text-blue-600 mt-1">Tip: Include + and country code for international compatibility</p>
-                                @elseif($contentType === 'SMS')
-                                    <p class="text-sm text-blue-700">💬 Enter a phone number for SMS (e.g., +1234567890)</p>
-                                    <p class="text-xs text-blue-600 mt-1">Tip: This will open the SMS app with the number pre-filled</p>
                                 @elseif($contentType === 'WiFi')
                                     <p class="text-sm text-blue-700">📶 Format: SSID,password,encryption_type (e.g., MyWiFi,mypassword,WPA)</p>
                                     <p class="text-xs text-blue-600 mt-1">Tip: Supported encryption: WPA, WEP, or leave empty for open networks</p>
@@ -488,100 +523,7 @@
                             <div class="mt-1 text-xs text-gray-400">{{ strlen($companyName) }}/50 characters</div>
                         </div>
                         
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-2">Upload Logo</label>
-                            <div class="flex items-center justify-center w-full">
-                                <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200 relative">
-                                    <!-- Loading overlay for logo upload -->
-                                    <div wire:loading wire:target="logo" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
-                                        <div class="flex flex-col items-center space-y-2">
-                                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
-                                            <span class="text-sm text-gray-600">Processing logo...</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="flex flex-col items-center justify-center pt-5 pb-6" wire:loading.remove wire:target="logo">
-                                        @if($logoTempPath)
-                                            <div class="relative mb-3">
-                                                <img src="{{ Storage::url($logoTempPath) }}" alt="Logo Preview" class="h-16 w-16 object-contain rounded-lg shadow-sm">
-                                                <button wire:click="$set('logoTempPath', null)" type="button" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors transform hover:scale-110">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                            <div class="flex items-center gap-2 text-sm text-emerald-600">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                                </svg>
-                                                Logo uploaded successfully!
-                                            </div>
-                                            <p class="text-xs text-gray-500 mt-1">Click to change logo</p>
-                                        @else
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mb-2 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                                <polyline points="21 15 16 10 5 21"></polyline>
-                                            </svg>
-                                            <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
-                                            <p class="text-xs text-gray-500">SVG, PNG or JPG (MAX. 2MB)</p>
-                                        @endif
-                                    </div>
-                                    <input wire:model="logo" type="file" class="hidden" accept="image/*">
-                                </label>
-                            </div>
-                            
-                            <!-- Logo format recommendations -->
-                            <div class="mt-2 p-3 bg-blue-50 border border-blue-100 rounded-md">
-                                <h4 class="text-sm font-medium text-blue-700 mb-1">📝 Logo Recommendations:</h4>
-                                <ul class="text-xs text-blue-600 space-y-1">
-                                    <li>• Use square aspect ratio for best results</li>
-                                    <li>• PNG format with transparent background preferred</li>
-                                    <li>• High contrast logos work better</li>
-                                    <li>• Avoid very detailed logos (they may not be visible)</li>
-                                </ul>
-                            </div>
-                        </div>
                         
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-2">Logo Size</label>
-                            <div class="flex items-center gap-4">
-                                <span class="text-sm text-gray-600">Small</span>
-                                <div class="flex-1 relative">
-                                    <input 
-                                        type="range" 
-                                        wire:model="logoSize" 
-                                        min="10" 
-                                        max="40" 
-                                        step="5" 
-                                        class="w-full appearance-none h-2 bg-gray-200 rounded-lg outline-none transition-all duration-200"
-                                        {{ !$logoTempPath ? 'disabled' : '' }}
-                                        wire:loading.attr="disabled"
-                                        wire:target="logoSize"
-                                    >
-                                    <div wire:loading wire:target="logoSize" class="absolute top-0 right-0 -mt-1">
-                                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-500"></div>
-                                    </div>
-                                </div>
-                                <span class="text-sm text-gray-600">Large</span>
-                            </div>
-                            <div class="text-center text-sm {{ $logoTempPath ? 'font-medium text-emerald-600' : 'text-gray-400' }} mt-1">{{ $logoSize }}%</div>
-                            <div class="mt-1 text-xs text-gray-500">
-                                @if($logoTempPath)
-                                    Determines the size of your logo relative to the QR code.
-                                @else
-                                    Upload a logo to adjust size settings.
-                                @endif
-                            </div>
-                            
-                            @if($logoSize > 30)
-                                <div class="mt-2 p-2 bg-orange-50 border border-orange-200 rounded-md">
-                                    <p class="text-xs text-orange-700">⚠️ Large logos may affect QR code scannability. Test before printing.</p>
-                                </div>
-                            @endif
-                        </div>
                     </div>
                 @endif
                 
@@ -727,11 +669,39 @@
         </div>
     </main>
     
-    <!-- Footer -->
-    <footer class="mt-12 py-6 border-t border-gray-200">
-        <div class="container mx-auto text-center text-gray-500">
-            <p>© 2025 Cool QR Generator. All rights reserved.</p>
-            <p class="text-xs mt-1">Generate professional QR codes with custom branding and multiple layouts.</p>
+    <!-- Enhanced Footer -->
+    <footer class="mt-16 py-8 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200">
+        <div class="container mx-auto text-center">
+            <div class="flex items-center justify-center space-x-2 mb-4">
+                <div class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <rect x="7" y="7" width="3" height="3"></rect>
+                        <rect x="14" y="7" width="3" height="3"></rect>
+                        <rect x="7" y="14" width="3" height="3"></rect>
+                        <rect x="14" y="14" width="3" height="3"></rect>
+                    </svg>
+                </div>
+                <span class="text-xl font-bold text-gray-700">Cool QR Generator</span>
+            </div>
+            <p class="text-gray-600 mb-2">© 2025 Cool QR Generator. All rights reserved.</p>
+            <p class="text-sm text-gray-500">Generate professional QR codes with custom branding and multiple layouts.</p>
+            
+            <!-- Feature badges -->
+            <div class="flex justify-center items-center space-x-4 mt-4">
+                <div class="flex items-center space-x-1 text-xs text-gray-500">
+                    <div class="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                    <span>High Quality</span>
+                </div>
+                <div class="flex items-center space-x-1 text-xs text-gray-500">
+                    <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span>Multiple Formats</span>
+                </div>
+                <div class="flex items-center space-x-1 text-xs text-gray-500">
+                    <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <span>Custom Branding</span>
+                </div>
+            </div>
         </div>
     </footer>
 
@@ -779,6 +749,86 @@ input[type="range"]::-moz-range-thumb {
 @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
+}
+
+/* QR Code image quality improvements */
+.qr-code-image {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -o-crisp-edges;
+    -ms-interpolation-mode: nearest-neighbor;
+}
+
+/* Enhanced animations */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200px 0;
+    }
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+
+.animate-slideInUp {
+    animation: slideInUp 0.6s ease-out;
+}
+
+.animate-bounceIn {
+    animation: bounceIn 0.6s ease-out;
+}
+
+.shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    background-size: 200px 100%;
+    animation: shimmer 2s infinite;
+}
+
+/* Glass morphism effect */
+.glass {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Enhanced hover effects */
+.hover-lift {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 </style>
 

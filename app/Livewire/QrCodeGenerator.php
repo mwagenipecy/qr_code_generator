@@ -37,6 +37,11 @@ class QrCodeGenerator extends Component
     public $logoTempPath = null;
     public $logoSize = 25; // Logo size as percentage of QR code size (default 25%)
     
+    // Center image properties
+    public $centerImage = null;
+    public $centerImageTempPath = null;
+    public $centerImageSize = 15; // Center image size as percentage of QR code size (default 15%)
+    
     // Download layout properties
     public $downloadLayout = 'standard'; // 'standard' or 'sides'
     
@@ -52,7 +57,7 @@ class QrCodeGenerator extends Component
     
     protected $rules = [
         'qrValue' => 'required|max:2000',
-        'contentType' => 'required|in:URL,Text,Email,Phone,SMS,WiFi,VCard',
+        'contentType' => 'required|in:URL,Text,Email,Phone,WiFi,VCard',
         'borderColor' => 'required|regex:/^#[0-9A-Fa-f]{6}$/',
         'qrStyle' => 'required|in:square,dots,round',
         'errorCorrection' => 'required|in:L,M,Q,H',
@@ -60,6 +65,8 @@ class QrCodeGenerator extends Component
         'companyName' => 'nullable|string|max:50',
         'logoPosition' => 'nullable|in:Center,Top Left,Top Right,Bottom Left,Bottom Right',
         'logoSize' => 'integer|min:10|max:40', // Limited to 10-40% of QR code size
+        'centerImage' => 'nullable|image|max:1024', // 1MB Max for center image
+        'centerImageSize' => 'integer|min:5|max:25', // Limited to 5-25% of QR code size
         'downloadLayout' => 'required|in:standard,sides',
     ];
     
@@ -85,7 +92,8 @@ class QrCodeGenerator extends Component
         // Regenerate QR code for relevant property changes
         if (in_array($propertyName, [
             'qrValue', 'contentType', 'qrStyle', 'errorCorrection', 
-            'size', 'borderColor', 'companyName', 'logoPosition', 'logoSize'
+            'size', 'borderColor', 'companyName', 'logoPosition', 'logoSize',
+            'centerImageSize'
         ])) {
             $this->generateQrCode();
         }
@@ -94,6 +102,16 @@ class QrCodeGenerator extends Component
         if ($propertyName === 'logo') {
             $this->processLogo();
             $this->generateQrCode();
+        }
+        
+        // Process center image upload - TEMPORARILY DISABLED
+        if ($propertyName === 'centerImage') {
+            $this->addError('centerImage', 'Center image feature is currently disabled. Please try again later.');
+            $this->centerImage = null;
+            return;
+            
+            // $this->processCenterImage();
+            // $this->generateQrCode();
         }
     }
     
@@ -118,16 +136,76 @@ class QrCodeGenerator extends Component
         $settings = [
             'content' => $this->formatContent(),
             'style' => $this->qrStyle,
-            'errorCorrection' => $this->logoTempPath ? 'H' : $this->errorCorrection,
+            'errorCorrection' => ($this->logoTempPath || $this->centerImageTempPath) ? 'H' : $this->errorCorrection,
             'size' => $this->size,
             'borderColor' => $this->borderColor,
             'companyName' => $this->companyName,
             'logoPath' => $this->logoTempPath,
             'logoSize' => $this->logoSize,
             'logoPosition' => $this->logoPosition,
+            'centerImagePath' => $this->centerImageTempPath,
+            'centerImageSize' => $this->centerImageSize,
         ];
         
         return md5(serialize($settings));
+    }
+    
+    /**
+     * Process and store the uploaded center image
+     */
+    public function processCenterImage()
+    {
+        if (!$this->centerImage) {
+            $this->centerImageTempPath = null;
+            return;
+        }
+        
+        try {
+            // Validate file type more strictly
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/svg+xml', 'image/webp'];
+            $fileMime = $this->centerImage->getMimeType();
+            
+            if (!in_array($fileMime, $allowedMimes)) {
+                $this->addError('centerImage', 'Only JPEG, PNG, SVG, and WebP images are allowed.');
+                return;
+            }
+            
+            // Store the center image temporarily
+            $this->centerImageTempPath = $this->centerImage->store('center-images', 'public');
+            
+            // Process center image for better display if Intervention Image is available
+            if (class_exists('Intervention\\Image\\Facades\\Image')) {
+                $imagePath = Storage::disk('public')->path($this->centerImageTempPath);
+                
+                try {
+                    // Create optimized center image version
+                    $image = Image::make($imagePath);
+                    
+                    // Ensure maximum dimensions for performance (smaller than logo)
+                    if ($image->width() > 200 || $image->height() > 200) {
+                        $image->resize(200, 200, function ($constraint) {
+                            $constraint->aspectRatio();
+                            $constraint->upsize();
+                        });
+                    }
+                    
+                    // Remove background using smart background removal
+                    $image = $this->removeImageBackground($image);
+                    
+                    // Save the processed center image with high quality
+                    $image->save($imagePath, 95); // High quality for better clarity
+                    
+                } catch (\Exception $e) {
+                    // If image processing fails, keep the original
+                    \Log::warning('Center image processing failed: ' . $e->getMessage());
+                }
+            }
+            
+        } catch (\Exception $e) {
+            $this->addError('centerImage', 'Failed to process center image. Please try a different image.');
+            $this->centerImageTempPath = null;
+            \Log::error('Center image upload failed: ' . $e->getMessage());
+        }
     }
     
     /**
@@ -247,21 +325,23 @@ class QrCodeGenerator extends Component
                 return;
             }
             
-            // Set error correction level (higher when logo is present)
-            $errorCorrection = $this->logoTempPath ? 'H' : $this->errorCorrection;
+            // Set error correction level (higher when logo or center image is present)
+            $errorCorrection = ($this->logoTempPath || $this->centerImageTempPath) ? 'H' : $this->errorCorrection;
             
-            // Create renderer style with appropriate margin
-            $margin = 1;
+            // Create renderer style with appropriate margin and quality settings
+            $margin = 2; // Increased margin for better scanning
             $rendererStyle = new RendererStyle($this->size, $margin);
             
             try {
                 // Try Imagick backend first for better quality
                 if (extension_loaded('imagick')) {
-                    $renderer = new ImageRenderer($rendererStyle, new ImagickImageBackEnd());
+                    // Configure Imagick for higher quality
+                    $imagickBackend = new ImagickImageBackEnd();
+                    $renderer = new ImageRenderer($rendererStyle, $imagickBackend);
                     $writer = new Writer($renderer);
                     $qrCode = $writer->writeString($content);
                     
-                    // Apply branding to PNG QR code
+                    // Apply branding to PNG QR code with high quality
                     if (class_exists('Intervention\\Image\\Facades\\Image')) {
                         $qrCode = $this->applyBrandingToImage($qrCode);
                     }
@@ -414,16 +494,133 @@ class QrCodeGenerator extends Component
                 $this->addLogoToCanvas($canvas, $img);
             }
             
+            // Add center image to QR code
+            if ($this->centerImageTempPath && Storage::disk('public')->exists($this->centerImageTempPath)) {
+                $this->addCenterImageToQrCode($img);
+            }
+            
             // Enhanced company name styling
             if (!empty($this->companyName)) {
                 $this->addCompanyNameToCanvas($canvas, $width, $height, $borderSize);
             }
             
-            return (string) $canvas->encode('png', 90);
+            return (string) $canvas->encode('png', 100);
             
         } catch (\Exception $e) {
             \Log::warning('Image branding failed: ' . $e->getMessage());
             return $qrCode;
+        }
+    }
+    
+    /**
+     * Remove background from image using smart algorithms
+     */
+    private function removeImageBackground($image)
+    {
+        try {
+            $width = $image->width();
+            $height = $image->height();
+            
+            // Create a new image with transparent background
+            $transparentImage = Image::canvas($width, $height, 'rgba(0, 0, 0, 0)');
+            
+            // Get image resource for pixel manipulation
+            $resource = $image->getCore();
+            
+            // Process each pixel to remove background
+            for ($x = 0; $x < $width; $x++) {
+                for ($y = 0; $y < $height; $y++) {
+                    $color = imagecolorat($resource, $x, $y);
+                    $rgb = imagecolorsforindex($resource, $color);
+                    
+                    // Extract RGB values
+                    $r = $rgb['red'];
+                    $g = $rgb['green'];
+                    $b = $rgb['blue'];
+                    $a = $rgb['alpha'];
+                    
+                    // Background removal algorithm
+                    // Remove white/light backgrounds
+                    if ($this->isBackgroundColor($r, $g, $b)) {
+                        // Make transparent
+                        $newColor = imagecolorallocatealpha($resource, 0, 0, 0, 127);
+                    } else {
+                        // Keep the original color but ensure transparency is preserved
+                        $newColor = imagecolorallocatealpha($resource, $r, $g, $b, $a);
+                    }
+                    
+                    imagesetpixel($resource, $x, $y, $newColor);
+                }
+            }
+            
+            // Create new image from processed resource
+            $processedImage = Image::make($resource);
+            
+            // Ensure transparency is enabled
+            $processedImage->encode('png');
+            
+            return $processedImage;
+            
+        } catch (\Exception $e) {
+            \Log::warning('Background removal failed: ' . $e->getMessage());
+            return $image; // Return original if processing fails
+        }
+    }
+    
+    /**
+     * Check if a color is likely a background color
+     */
+    private function isBackgroundColor($r, $g, $b)
+    {
+        // Remove white and near-white backgrounds
+        if ($r > 240 && $g > 240 && $b > 240) {
+            return true;
+        }
+        
+        // Remove light gray backgrounds
+        if ($r > 200 && $g > 200 && $b > 200 && abs($r - $g) < 20 && abs($g - $b) < 20 && abs($r - $b) < 20) {
+            return true;
+        }
+        
+        // Remove very light colors
+        if ($r > 220 && $g > 220 && $b > 220) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Add center image to QR code
+     */
+    private function addCenterImageToQrCode($qrImg)
+    {
+        try {
+            $centerImagePath = Storage::disk('public')->path($this->centerImageTempPath);
+            if (!file_exists($centerImagePath)) {
+                return;
+            }
+            
+            $centerImage = Image::make($centerImagePath);
+            
+            // Calculate center image size based on percentage
+            $centerSize = intval($qrImg->width() * ($this->centerImageSize / 100));
+            
+            // Resize image maintaining aspect ratio but fitting within the calculated size
+            $centerImage->resize($centerSize, $centerSize, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize(); // Don't upscale smaller images
+            });
+            
+            // Position the center image in the exact middle of the QR code
+            $centerX = ($qrImg->width() - $centerImage->width()) / 2;
+            $centerY = ($qrImg->height() - $centerImage->height()) / 2;
+            
+            // Insert the image directly without any background or masking
+            $qrImg->insert($centerImage, 'top-left', $centerX, $centerY);
+            
+        } catch (\Exception $e) {
+            \Log::warning('Center image addition failed: ' . $e->getMessage());
         }
     }
     
@@ -1290,21 +1487,7 @@ class QrCodeGenerator extends Component
                     <strong>Generator:</strong> Cool QR Generator v2.0
                 </div>
                 
-                <div class="usage-tips">
-                    <div class="tips-title">📱 Usage Tips:</div>
-                    <ul class="tips-list">
-                        <li>Test the QR code with multiple devices before mass distribution</li>
-                        <li>Ensure good lighting when scanning printed QR codes</li>
-                        <li>For best results, maintain original size when printing</li>
-                        <li>If the QR code contains a URL, verify the link is accessible</li>
-                        <li>Keep a backup copy of this PDF for your records</li>
-                    </ul>
-                </div>
                 
-                <div class="footer">
-                    <p>This QR code was generated using Cool QR Generator.</p>
-                    <p>For support or to create more QR codes, visit our website.</p>
-                </div>
             </div>
         </body>
         </html>';
@@ -1523,6 +1706,15 @@ class QrCodeGenerator extends Component
                 \Log::warning('Failed to cleanup temp logo file: ' . $e->getMessage());
             }
         }
+        
+        if ($this->centerImageTempPath && Storage::disk('public')->exists($this->centerImageTempPath)) {
+            try {
+                Storage::disk('public')->delete($this->centerImageTempPath);
+                $this->centerImageTempPath = null;
+            } catch (\Exception $e) {
+                \Log::warning('Failed to cleanup temp center image file: ' . $e->getMessage());
+            }
+        }
     }
     
     /**
@@ -1542,10 +1734,20 @@ class QrCodeGenerator extends Component
     private function cleanupOldTempFiles()
     {
         try {
-            $files = Storage::disk('public')->files('logos');
+            // Clean up logo files
+            $logoFiles = Storage::disk('public')->files('logos');
             $oneHourAgo = now()->subHour();
             
-            foreach ($files as $file) {
+            foreach ($logoFiles as $file) {
+                $lastModified = Storage::disk('public')->lastModified($file);
+                if ($lastModified < $oneHourAgo->timestamp) {
+                    Storage::disk('public')->delete($file);
+                }
+            }
+            
+            // Clean up center image files
+            $centerImageFiles = Storage::disk('public')->files('center-images');
+            foreach ($centerImageFiles as $file) {
                 $lastModified = Storage::disk('public')->lastModified($file);
                 if ($lastModified < $oneHourAgo->timestamp) {
                     Storage::disk('public')->delete($file);
